@@ -31,6 +31,7 @@ namespace Hosu_Denisa_Lab5
         ActionState action = ActionState.Nothing;
         AutoLotEntitiesModel ctx = new AutoLotEntitiesModel();
         CollectionViewSource customerVSource;
+        CollectionViewSource inventoryVSource;
         CollectionViewSource customerOrdersVSource;
         public MainWindow()
         {
@@ -40,24 +41,20 @@ namespace Hosu_Denisa_Lab5
 
         private void Window_Loaded_1(object sender, RoutedEventArgs e)
         {
-            customerVSource =
-((System.Windows.Data.CollectionViewSource)(this.FindResource("customerViewSource")));
-            //customerVSource.Source = ctx.Customers.Local;
+            customerVSource =((System.Windows.Data.CollectionViewSource)(this.FindResource("customerViewSource")));
+            customerVSource.Source = ctx.Customers.Local;
             ctx.Customers.Load();
-            System.Windows.Data.CollectionViewSource customerViewSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("customerViewSource")));
-            // Load data by setting the CollectionViewSource.Source property:
-            // customerViewSource.Source = [generic data source]
-            System.Windows.Data.CollectionViewSource inventoryViewSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("inventoryViewSource")));
-            // Load data by setting the CollectionViewSource.Source property:
-            // inventoryViewSource.Source = [generic data source]
-            customerOrdersVSource =
-((System.Windows.Data.CollectionViewSource)(this.FindResource("customerOrdersViewSource")));
 
-            customerOrdersVSource.Source = ctx.Orders.Local;
-            ctx.Orders.Load();
+            inventoryVSource = (CollectionViewSource)(this.FindResource("inventoryViewSource"));
+            inventoryVSource.Source = ctx.Inventories.Local;
             ctx.Inventories.Load();
+
+            customerOrdersVSource = ((System.Windows.Data.CollectionViewSource)(this.FindResource("customerOrdersViewSource")));
+
+            //customerOrdersVSource.Source = ctx.Orders.Local;
+            //ctx.Orders.Load();
+            //ctx.Inventories.Load();
             cmbCustomers.ItemsSource = ctx.Customers.Local;
-     
            // cmbCustomers.DisplayMemberPath = "FirstName";
             cmbCustomers.SelectedValuePath = "CustId";
             cmbInventory.ItemsSource = ctx.Inventories.Local;
@@ -69,10 +66,17 @@ namespace Hosu_Denisa_Lab5
         private void btnAdd_Click(object sender, RoutedEventArgs e)
         {
             action = ActionState.New;
+            BindingOperations.ClearBinding(firstNameTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(lastNameTextBox, TextBox.TextProperty);
+            SetValidationBinding();
+
         }
         private void btnEditO_Click(object sender, RoutedEventArgs e)
         {
             action = ActionState.Edit;
+            BindingOperations.ClearBinding(firstNameTextBox, TextBox.TextProperty);
+            BindingOperations.ClearBinding(lastNameTextBox, TextBox.TextProperty);
+            SetValidationBinding();
         }
         private void btnDeleteO_Click(object sender, RoutedEventArgs e)
         {
@@ -346,5 +350,34 @@ namespace Hosu_Denisa_Lab5
                              };
             customerOrdersVSource.Source = queryOrder.ToList();
         }
+        private void SetValidationBinding()
+        {
+            Binding firstNameValidationBinding = new Binding();
+            firstNameValidationBinding.Source = customerVSource;
+            firstNameValidationBinding.Path = new PropertyPath("FirstName");
+            firstNameValidationBinding.NotifyOnValidationError = true;
+            firstNameValidationBinding.Mode = BindingMode.TwoWay;
+            firstNameValidationBinding.UpdateSourceTrigger =
+           UpdateSourceTrigger.PropertyChanged;
+            //string required
+            firstNameValidationBinding.ValidationRules.Add(new StringNotEmpty());
+            firstNameTextBox.SetBinding(TextBox.TextProperty,
+           firstNameValidationBinding);
+            Binding lastNameValidationBinding = new Binding();
+            lastNameValidationBinding.Source = customerVSource;
+            lastNameValidationBinding.Path = new PropertyPath("LastName");
+            lastNameValidationBinding.NotifyOnValidationError = true;
+            lastNameValidationBinding.Mode = BindingMode.TwoWay;
+            lastNameValidationBinding.UpdateSourceTrigger =
+           UpdateSourceTrigger.PropertyChanged;
+            //string min length validator
+            lastNameValidationBinding.ValidationRules.Add(new
+           StringMinLengthValidator());
+            lastNameTextBox.SetBinding(TextBox.TextProperty,
+           lastNameValidationBinding); //setare binding nou
+        }
+
     }
+ 
 }
+
